@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定时任务签到提醒系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e1e5e9;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .task-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+
+        .status-inactive {
+            background: #ffeaea;
+            color: #e74c3c;
+        }
+
+        .task-info {
+            margin-bottom: 15px;
+        }
+
+        .task-info p {
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-actions .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ 定时任务签到提醒系统</h1>
+            <p>管理您的日常任务，不错过任何重要签到</p>
+        </div>
+
+        <div class="content">
+            <!-- 统计信息 -->
+            <div class="section">
+                <h2 class="section-title">📊 今日统计</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-tasks">0</div>
+                        <div class="stat-label">总任务数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="active-tasks">0</div>
+                        <div class="stat-label">活跃任务</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="today-checkins">0</div>
+                        <div class="stat-label">今日签到</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pending-tasks">0</div>
+                        <div class="stat-label">待签到任务</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加任务 -->
+            <div class="section">
+                <h2 class="section-title">➕ 添加新任务</h2>
+                <form id="task-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-title">任务名称 *</label>
+                            <input type="text" id="task-title" required placeholder="例如：每日健康打卡">
+                        </div>
+                        <div class="form-group">
+                            <label for="task-time">提醒时间 *</label>
+                            <input type="time" id="task-time" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-email">提醒邮箱 *</label>
+                        <input type="email" id="task-email" required placeholder="your-email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description">任务描述</label>
+                        <textarea id="task-description" rows="3" placeholder="可选：添加任务详细描述"></textarea>
+                    </div>
+                    <button type="submit" class="btn">创建任务</button>
+                </form>
+            </div>
+
+            <!-- 任务列表 -->
+            <div class="section">
+                <h2 class="section-title">📋 任务列表</h2>
+                <div id="tasks-container">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let tasks = [];
+        let todayCheckins = [];
+
+        // DOM 加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            loadTodayCheckins();
+            
+            // 表单提交事件
+            document.getElementById('task-form').addEventListener('submit', handleTaskSubmit);
+        });
+
+        // 加载任务列表
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                tasks = await response.json();
+                renderTasks();
+                updateStats();
+            } catch (error) {
+                showAlert('加载任务失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载今日签到记录
+        async function loadTodayCheckins() {
+            try {
+                const response = await fetch('/api/checkins/today');
+                todayCheckins = await response.json();
+                updateStats();
+            } catch (error) {
+                console.error('加载今日签到记录失败:', error);
+            }
+        }
+
+        // 渲染任务列表
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="loading">暂无任务，请添加第一个任务</div>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => `
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                        <span class="task-status ${task.is_active ? 'status-active' : 'status-inactive'}">
+                            ${task.is_active ? '活跃' : '已停用'}
+                        </span>
+                    </div>
+                    <div class="task-info">
+                        <p><strong>描述:</strong> ${task.description || '无'}</p>
+                        <p><strong>提醒时间:</strong> ${task.reminder_time}</p>
+                        <p><strong>邮箱:</strong> ${task.email}</p>
+                        <p><strong>创建时间:</strong> ${formatDateTime(task.created_at)}</p>
+                    </div>
+                    <div class="task-actions">
+                        ${task.is_active ? 
+                            `<button class="btn btn-success" onclick="checkIn(${task.id})">✅ 签到</button>` : 
+                            `<button class="btn btn-secondary" onclick="toggleTaskStatus(${task.id}, true)">启用</button>`
+                        }
+                        ${task.is_active ? 
+                            `<button class="btn btn-secondary" onclick="toggleTaskStatus(${task.id}, false)">停用</button>` : 
+                            ''
+                        }
+                        <button class="btn btn-secondary" onclick="editTask(${task.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteTask(${task.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 处理任务表单提交
+        async function handleTaskSubmit(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('task-title').value,
+                reminder_time: document.getElementById('task-time').value,
+                email: document.getElementById('task-email').value,
+                description: document.getElementById('task-description').value
+            };
+
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showAlert('任务创建成功！', 'success');
+                    document.getElementById('task-form').reset();
+                    loadTasks();
+                } else {
+                    const error = await response.json();
+                    showAlert('创建失败: ' + error.error, 'error');
+                }
+            } catch (error) {
+                showAlert('创建失败: ' + error.message, 'error');
+            }
+        }
+
+        // 签到功能
+        async function checkIn(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/checkin`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    showAlert('签到成功！', 'success');
+                    loadTodayCheckins();
+                    updateStats();
+                } else {
+                    const error = await response.json();
+                    showAlert('签到失败: ' + error.error, 'error');
+                }
+            } catch (error) {
+                showAlert('签到失败: ' + error.message, 'error');
+            }
+        }
+
+        // 切换任务状态
+        async function toggleTaskStatus(taskId, isActive) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ is_active: isActive })
+                });
+
+                if (response.ok) {
+                    showAlert(`任务已${isActive ? '启用' : '停用'}`, 'success');
+                    loadTasks();
+                    updateStats();
+                } else {
+                    showAlert('操作失败', 'error');
+                }
+            } catch (error) {
+                showAlert('操作失败: ' + error.message, 'error');
+            }
+        }
+
+        // 编辑任务
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // 填充表单
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-time').value = task.reminder_time;
+            document.getElementById('task-email').value = task.email;
+            document.getElementById('task-description').value = task.description || '';
+
+            // 滚动到表单
+            document.getElementById('task-form').scrollIntoView({ behavior: 'smooth' });
+            
+            // 修改提交按钮
+            const submitBtn = document.querySelector('#task-form .btn');
+            submitBtn.textContent = '更新任务';
+            submitBtn.onclick = async (e) => {
+                e.preventDefault();
+                await updateTask(taskId);
+            };
+        }
+
+        // 更新任务
+        async function updateTask(taskId) {
+            const formData = {
+                title: document.getElementById('task-title').value,
+                reminder_time: document.getElementById('task-time').value,
+                email: document.getElementById('task-email').value,
+                description: document.getElementById('task-description').value
+            };
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showAlert('任务更新成功！', 'success');
+                    document.getElementById('task-form').reset();
+                    const submitBtn = document.querySelector('#task-form .btn');
+                    submitBtn.textContent = '创建任务';
+                    submitBtn.onclick = handleTaskSubmit;
+                    loadTasks();
+                } else {
+                    showAlert('更新失败', 'error');
+                }
+            } catch (error) {
+                showAlert('更新失败: ' + error.message, 'error');
+            }
+        }
+
+        // 删除任务
+        async function deleteTask(taskId) {
+            if (!confirm('确定要删除这个任务吗？此操作不可恢复。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('任务已删除', 'success');
+                    loadTasks();
+                    updateStats();
+                } else {
+                    showAlert('删除失败', 'error');
+                }
+            } catch (error) {
+                showAlert('删除失败: ' + error.message, 'error');
+            }
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const totalTasks = tasks.length;
+            const activeTasks = tasks.filter(t => t.is_active).length;
+            const todayCheckinsCount = todayCheckins.length;
+            const pendingTasks = activeTasks - todayCheckinsCount;
+
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('active-tasks').textContent = activeTasks;
+            document.getElementById('today-checkins').textContent = todayCheckinsCount;
+            document.getElementById('pending-tasks').textContent = Math.max(0, pendingTasks);
+        }
+
+        // 显示提示信息
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.display = 'block';
+
+            const content = document.querySelector('.content');
+            content.insertBefore(alertDiv, content.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // 设置默认时间为当前时间
+        document.getElementById('task-time').value = new Date().toTimeString().slice(0, 5);
+        
+        // 格式化时间显示函数
+        function formatDateTime(dateString) {
+            if (!dateString) return '未知时间';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '无效时间';
+            
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        }
+    </script>
+</body>
+</html>

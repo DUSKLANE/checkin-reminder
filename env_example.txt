@@ -1,0 +1,11 @@
+# 邮件服务器配置
+# 以QQ邮箱为例，其他邮箱请根据实际情况修改
+SMTP_SERVER=smtp.qq.com
+SMTP_PORT=587
+SENDER_EMAIL=your-email@qq.com
+SENDER_PASSWORD=your-app-password
+
+# 注意：
+# 1. 对于QQ邮箱，需要使用授权码而不是登录密码
+# 2. 授权码获取方法：QQ邮箱设置 -> 账户 -> 开启SMTP服务 -> 生成授权码
+# 3. 其他邮箱请参考对应邮箱服务商的SMTP设置说明
