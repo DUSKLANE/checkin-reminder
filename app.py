@@ -67,9 +67,9 @@ def send_reminder_email(task):
         # 邮件配置 - 请根据实际情况修改
         smtp_server = os.getenv('SMTP_SERVER', 'smtpdm.aliyun.com')
         smtp_port = int(os.getenv('SMTP_PORT', '465'))
-        sender_email = os.getenv('SENDER_EMAIL', 'dusk@mail.dusklane.top')
-        sender_password = os.getenv('SENDER_PASSWORD', 'Pq3ctu7Uj8QTWU1vwnrR')
-        
+        sender_email = os.getenv('SENDER_EMAIL', '')
+        sender_password = os.getenv('SENDER_PASSWORD', '')
+
         # 创建邮件
         msg = MIMEMultipart()
         msg['From'] = sender_email
