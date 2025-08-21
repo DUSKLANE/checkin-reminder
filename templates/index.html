@@ -159,16 +159,34 @@
             border-radius: 20px;
             font-size: 0.8em;
             font-weight: 500;
+            margin-right: 5px;
         }
 
         .status-active {
-            background: #e8f5e8;
-            color: #27ae60;
+            background: #4CAF50;
+            color: white;
         }
 
         .status-inactive {
-            background: #ffeaea;
-            color: #e74c3c;
+            background: #f44336;
+            color: white;
+        }
+
+        .checkin-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .status-checked-in {
+            background: #2196F3;
+            color: white;
+        }
+
+        .status-not-checked-in {
+            background: #FFC107;
+            color: black;
         }
 
         .task-info {
@@ -362,6 +380,11 @@
             }
         }
 
+        // 检查任务是否已签到
+        function isTaskCheckedIn(taskId) {
+            return todayCheckins.some(checkin => checkin.task_id === taskId);
+        }
+
         // 渲染任务列表
         function renderTasks() {
             const container = document.getElementById('tasks-container');
@@ -378,6 +401,10 @@
                         <span class="task-status ${task.is_active ? 'status-active' : 'status-inactive'}">
                             ${task.is_active ? '活跃' : '已停用'}
                         </span>
+                        ${task.is_active ? `
+                        <span class="checkin-status ${isTaskCheckedIn(task.id) ? 'status-checked-in' : 'status-not-checked-in'}">
+                            ${isTaskCheckedIn(task.id) ? '✅ 已签到' : '🔴 未签到'}
+                        </span>` : ''}
                     </div>
                     <div class="task-info">
                         <p><strong>描述:</strong> ${task.description || '无'}</p>

@@ -65,10 +65,10 @@ def send_reminder_email(task):
     """发送提醒邮件"""
     try:
         # 邮件配置 - 请根据实际情况修改
-        smtp_server = os.getenv('SMTP_SERVER', '')
-        smtp_port = int(os.getenv('SMTP_PORT', ''))
-        sender_email = os.getenv('SENDER_EMAIL', '')
-        sender_password = os.getenv('SENDER_PASSWORD', '')
+        smtp_server = os.getenv('SMTP_SERVER', 'smtpdm.aliyun.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '465'))
+        sender_email = os.getenv('SENDER_EMAIL', 'dusk@mail.dusklane.top')
+        sender_password = os.getenv('SENDER_PASSWORD', 'Pq3ctu7Uj8QTWU1vwnrR')
         
         # 创建邮件
         msg = MIMEMultipart()
@@ -76,21 +76,17 @@ def send_reminder_email(task):
         msg['To'] = task.email
         msg['Subject'] = f'签到提醒 - {task.title}'
         
-        body = f"""
-        您好！
-        
-        这是一条签到提醒：
-        
-        任务名称：{task.title}
-        提醒时间：{task.reminder_time}
-        任务描述：{task.description or '无'}
-        
-        请及时完成签到，避免遗漏！
-        
-        此邮件由系统自动发送，请勿回复。
-        """
-        
-        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        # 读取HTML模板
+        with open('templates/email_template.html', 'r', encoding='utf-8') as file:
+            html_template = file.read()
+
+        # 替换模板中的占位符
+        html_body = html_template.replace('{{ task_title }}', task.title)
+        html_body = html_body.replace('{{ reminder_time }}', task.reminder_time)
+        html_body = html_body.replace('{{ task_description }}', task.description or '无')
+
+        # 添加HTML内容
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
         
         # 发送邮件
         if smtp_port == 465:
